@@ -13,8 +13,10 @@
     "vite": "^2.3.7"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.170",
     "@types/three": "^0.129.1",
     "autoprefixer": "^10.2.6",
+    "lodash": "^4.17.21",
     "postcss": "^8.3.4",
     "three": "^0.129.0",
     "three-stdlib": "^2.2.0"
