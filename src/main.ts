@@ -2,9 +2,13 @@ import {
     AmbientLight,
     Color,
     DirectionalLight,
+    DoubleSide,
     Group,
+    Mesh,
+    MeshStandardMaterial,
     Object3D,
     PerspectiveCamera,
+    PlaneGeometry,
     Scene,
     WebGLRenderer,
 } from "three";
@@ -12,12 +16,12 @@ import { OrbitControls } from "three-stdlib";
 import "./style.css";
 import { WHITE, BLUE, ORANGE, RED, YELLOW, GREEN } from "./colors";
 import { Cube, CubeColors } from "./cube";
-import { sleep } from "./util";
-import { merge } from 'lodash';
+import { merge } from "lodash";
 
-const CUBE_AMOUNT = 5;
+const CUBE_AMOUNT = 3;
 const MAX_INDEX = CUBE_AMOUNT - 1;
-const ORIGIN_OFFSET = (CUBE_AMOUNT-1) / -2;
+const ORIGIN_OFFSET = (CUBE_AMOUNT - 1) / -2;
+const CAMERA_OFFSET = CUBE_AMOUNT * 1.5;
 
 const main = document.querySelector("#main")!;
 
@@ -31,6 +35,7 @@ const renderer = new WebGLRenderer({
 });
 renderer.setSize(main.clientWidth, main.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
 
 const scene = new Scene();
 scene.background = new Color("white");
@@ -38,22 +43,25 @@ const camera = new PerspectiveCamera(90, canvas.width / canvas.height);
 
 window.addEventListener("resize", () => {
     camera.aspect = main.clientWidth / main.clientHeight;
-    renderer.setSize(main.clientWidth, main.clientHeight);
+    camera.updateProjectionMatrix();
+    renderer.setSize(main.clientWidth, main.clientHeight, true);
 });
 
-const light = new DirectionalLight();
-light.position.set(0, 100, 0);
-scene.add(light);
+const directionalLight = new DirectionalLight();
+directionalLight.position.set(10, 10, -10);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
 
-scene.add(new AmbientLight());
+const ambientLight = new AmbientLight();
+scene.add(ambientLight);
 
-camera.position.set(0, 5, 5);
+camera.position.set(0, CAMERA_OFFSET, CAMERA_OFFSET);
 camera.lookAt(0, 0, 0);
 
-const controls = new OrbitControls(camera, canvas);
+//const controls = new OrbitControls(camera, canvas);
 
 renderer.setAnimationLoop(() => {
-    controls.update();
+    //controls.update();
     renderer.render(scene, camera);
 });
 
@@ -66,13 +74,13 @@ const cubes: Object3D[][][] = Array(CUBE_AMOUNT)
     );
 
 const cubeGroup = new Group();
-cubeGroup.position.set(ORIGIN_OFFSET, ORIGIN_OFFSET, ORIGIN_OFFSET);
+cubeGroup.position.set(0, 0, 0);
 scene.add(cubeGroup);
 
 type ColorMap = {
-    x: { bottom: Partial<CubeColors>; top: Partial<CubeColors> };
-    y: { bottom: Partial<CubeColors>; top: Partial<CubeColors> };
-    z: { bottom: Partial<CubeColors>; top: Partial<CubeColors> };
+    x: { bottom: CubeColors; top: CubeColors };
+    y: { bottom: CubeColors; top: CubeColors };
+    z: { bottom: CubeColors; top: CubeColors };
 };
 
 const colorMap: ColorMap = {
@@ -91,33 +99,117 @@ const colorMap: ColorMap = {
 };
 
 type Position = {
-  x: number;
-  y: number;
-  z: number;
+    x: number;
+    y: number;
+    z: number;
+};
+
+function applyColors(colors: CubeColors, position: Position) {
+    Object.entries(position).forEach(([key, value]) => {
+        if (value === 0) {
+            merge(colors, colorMap[key as keyof Position].bottom);
+        } else if (value === MAX_INDEX) {
+            merge(colors, colorMap[key as keyof Position].top);
+        }
+    });
 }
 
-function applyColors(colors: Partial<CubeColors>, position: Position) {
-  Object.entries(position).forEach(([key, value]) => {
-    if (value === 0) {
-      merge(colors, colorMap[key as keyof Position].bottom);
-    } else if (value === MAX_INDEX) {
-      merge(colors, colorMap[key as keyof Position].top);
-    }
-  })
-}
+function generateCubes() {
+    for (let x = 0; x < CUBE_AMOUNT; x++) {
+        for (let y = 0; y < CUBE_AMOUNT; y++) {
+            for (let z = 0; z < CUBE_AMOUNT; z++) {
+                let colors: CubeColors = {};
 
-for (let x = 0; x < CUBE_AMOUNT; x++) {
-    for (let y = 0; y < CUBE_AMOUNT; y++) {
-        for (let z = 0; z < CUBE_AMOUNT; z++) {
-            let colors: Partial<CubeColors> = {};
+                applyColors(colors, { x, y, z });
 
-            applyColors(colors, {x, y, z});
+                const cube = Cube([x+ORIGIN_OFFSET, y+ORIGIN_OFFSET, z+ORIGIN_OFFSET], colors);
+                cubes[x][y][z] = cube;
+                cubeGroup.add(cube);
 
-            const cube = Cube([x, y, z], colors);
-            cubes[x][y][z] = cube;
-            cubeGroup.add(cube);
-
-            await sleep(25);
+                //await sleep(25);
+            }
         }
     }
 }
+
+generateCubes();
+
+function generateFloor() {
+    const geometry = new PlaneGeometry(20, 20);
+    const material = new MeshStandardMaterial({
+        color: "gray",
+        side: DoubleSide,
+    });
+    const mesh = new Mesh(geometry, material);
+
+    mesh.position.set(0, ORIGIN_OFFSET * 5, 0);
+    mesh.rotateX(Math.PI / 2);
+    mesh.receiveShadow = true;
+
+    scene.add(mesh);
+}
+
+generateFloor();
+
+var mouseDown = false,
+    mouseX = 0,
+    mouseY = 0;
+
+function onMouseMove(evt: MouseEvent) {
+    if (!mouseDown) {
+        return;
+    }
+
+    evt.preventDefault();
+
+    var deltaX = evt.clientX - mouseX,
+        deltaY = evt.clientY - mouseY;
+    mouseX = evt.clientX;
+    mouseY = evt.clientY;
+    rotateScene(deltaX, deltaY);
+}
+
+function onMouseDown(evt: MouseEvent) {
+    evt.preventDefault();
+
+    mouseDown = true;
+    mouseX = evt.clientX;
+    mouseY = evt.clientY;
+}
+
+function onMouseUp(evt: MouseEvent) {
+    evt.preventDefault();
+
+    mouseDown = false;
+}
+
+function addMouseHandler(canvas: HTMLCanvasElement) {
+    canvas.addEventListener(
+        "mousemove",
+        function (e) {
+            onMouseMove(e);
+        },
+        false
+    );
+    canvas.addEventListener(
+        "mousedown",
+        function (e) {
+            onMouseDown(e);
+        },
+        false
+    );
+    canvas.addEventListener(
+        "mouseup",
+        function (e) {
+            onMouseUp(e);
+        },
+        false
+    );
+}
+
+function rotateScene(deltaX: number, deltaY: number) {
+    cubeGroup.rotation.y += deltaX / 100;
+    cubeGroup.rotation.x += deltaY / 100;
+}
+
+addMouseHandler(canvas);
