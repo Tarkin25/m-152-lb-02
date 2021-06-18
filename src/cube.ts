@@ -51,6 +51,7 @@ export function Cube(
     const cube = new Mesh(geometry, materials);
     cube.castShadow = true;
     cube.receiveShadow = true;
+    //cube.position.set(...position);
 
     const edges = new EdgesGeometry(geometry);
     const lines = new LineSegments(
@@ -59,8 +60,11 @@ export function Cube(
     );
 
     const group = new Group();
+    group.receiveShadow = true;
     group.position.set(...position);
     group.add(cube, lines);
 
     return group;
+
+    return cube;
 }

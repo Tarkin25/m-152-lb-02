@@ -1,22 +1,27 @@
 import {
     AmbientLight,
+    BoxGeometry,
     Color,
     DirectionalLight,
     DoubleSide,
     Group,
     Mesh,
+    MeshLambertMaterial,
     MeshStandardMaterial,
     Object3D,
     PerspectiveCamera,
     PlaneGeometry,
+    Raycaster,
     Scene,
+    Vector2,
+    Vector3,
     WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three-stdlib";
 import "./style.css";
 import { WHITE, BLUE, ORANGE, RED, YELLOW, GREEN } from "./colors";
 import { Cube, CubeColors } from "./cube";
-import { merge } from "lodash";
+import { isArray, merge } from "lodash";
 
 const CUBE_AMOUNT = 3;
 const MAX_INDEX = CUBE_AMOUNT - 1;
@@ -58,20 +63,56 @@ scene.add(ambientLight);
 camera.position.set(0, CAMERA_OFFSET, CAMERA_OFFSET);
 camera.lookAt(0, 0, 0);
 
-//const controls = new OrbitControls(camera, canvas);
+const controls = new OrbitControls(camera, canvas);
 
-renderer.setAnimationLoop(() => {
-    //controls.update();
+const raycaster = new Raycaster();
+raycaster.camera = camera;
+const mouse = new Vector2();
+
+const onMouseMove = (e: MouseEvent) => {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(cubeGroup.children, false);
+
+    intersects.forEach(intersect => {
+        const object = intersect.object as Mesh;
+
+        if (object.geometry.type !== "PlaneGeometry") {
+            const material = object.material;
+
+            if (isArray(material)) {
+                material.forEach((mat) => {
+                    const material = mat as MeshStandardMaterial;
+
+                    material.emissive.set("pink");
+                })
+            } else {
+                const mat = material as MeshStandardMaterial;
+
+                mat.emissive.set("pink");
+            }
+        }
+    })
+};
+
+let tLast: number = 0;
+
+renderer.setAnimationLoop((time) => {
+    const deltaTime = tLast === 0 ? time : time - tLast;
+    tLast = time;
+
+    rotatePlane("z", 1, deltaTime / 1000);
+    controls.update();
+    camera.updateMatrixWorld();
     renderer.render(scene, camera);
 });
 
-const cubes: Object3D[][][] = Array(CUBE_AMOUNT)
-    .fill(undefined)
-    .map(() =>
-        Array(CUBE_AMOUNT)
-            .fill(undefined)
-            .map(() => Array(CUBE_AMOUNT).fill(undefined))
-    );
+//canvas.addEventListener('mousemove', onMouseMove, false);
+
+const cubes: Object3D[] = [];
 
 const cubeGroup = new Group();
 cubeGroup.position.set(0, 0, 0);
@@ -122,8 +163,11 @@ function generateCubes() {
 
                 applyColors(colors, { x, y, z });
 
-                const cube = Cube([x+ORIGIN_OFFSET, y+ORIGIN_OFFSET, z+ORIGIN_OFFSET], colors);
-                cubes[x][y][z] = cube;
+                const cube = Cube(
+                    [x + ORIGIN_OFFSET, y + ORIGIN_OFFSET, z + ORIGIN_OFFSET],
+                    colors
+                );
+                cubes.push(cube);
                 cubeGroup.add(cube);
 
                 //await sleep(25);
@@ -151,65 +195,39 @@ function generateFloor() {
 
 generateFloor();
 
-var mouseDown = false,
-    mouseX = 0,
-    mouseY = 0;
+const rotatePlane = (axis: "x" | "y" | "z", index: number, radial: number) => {
+    const planeCenter = new Vector3(0,0,0);
+    planeCenter[axis] = index;
+    const rotationAxis = new Vector3(0, 0, 0);
+    rotationAxis[axis] = 1;
+    rotationAxis.normalize();
 
-function onMouseMove(evt: MouseEvent) {
-    if (!mouseDown) {
-        return;
+    for (let cube of cubes) {
+        if (cube.position[axis] === index) {
+            rotateAboutPoint(cube, planeCenter, rotationAxis, radial, false);
+        }
+    }
+}
+
+// obj - your object (THREE.Object3D or derived)
+// point - the point of rotation (THREE.Vector3)
+// axis - the axis of rotation (normalized THREE.Vector3)
+// theta - radian value of rotation
+// pointIsWorld - boolean indicating the point is in world coordinates (default = false)
+function rotateAboutPoint(obj: Object3D, point: Vector3, axis: Vector3, theta: number, pointIsWorld: boolean){
+    pointIsWorld = (pointIsWorld === undefined)? false : pointIsWorld;
+
+    if(pointIsWorld){
+        obj.parent?.localToWorld(obj.position); // compensate for world coordinate
     }
 
-    evt.preventDefault();
+    obj.position.sub(point); // remove the offset
+    obj.position.applyAxisAngle(axis, theta); // rotate the POSITION
+    obj.position.add(point); // re-add the offset
 
-    var deltaX = evt.clientX - mouseX,
-        deltaY = evt.clientY - mouseY;
-    mouseX = evt.clientX;
-    mouseY = evt.clientY;
-    rotateScene(deltaX, deltaY);
+    if(pointIsWorld){
+        obj.parent?.worldToLocal(obj.position); // undo world coordinates compensation
+    }
+
+    obj.rotateOnAxis(axis, theta); // rotate the OBJECT
 }
-
-function onMouseDown(evt: MouseEvent) {
-    evt.preventDefault();
-
-    mouseDown = true;
-    mouseX = evt.clientX;
-    mouseY = evt.clientY;
-}
-
-function onMouseUp(evt: MouseEvent) {
-    evt.preventDefault();
-
-    mouseDown = false;
-}
-
-function addMouseHandler(canvas: HTMLCanvasElement) {
-    canvas.addEventListener(
-        "mousemove",
-        function (e) {
-            onMouseMove(e);
-        },
-        false
-    );
-    canvas.addEventListener(
-        "mousedown",
-        function (e) {
-            onMouseDown(e);
-        },
-        false
-    );
-    canvas.addEventListener(
-        "mouseup",
-        function (e) {
-            onMouseUp(e);
-        },
-        false
-    );
-}
-
-function rotateScene(deltaX: number, deltaY: number) {
-    cubeGroup.rotation.y += deltaX / 100;
-    cubeGroup.rotation.x += deltaY / 100;
-}
-
-addMouseHandler(canvas);
