@@ -6,4 +6,4 @@ export const YELLOW = new Color("yellow");
 export const RED = new Color("red");
 export const BLUE = new Color("blue");
 export const GREEN = new Color("green");
-export const ORANGE = new Color(0xff8800);
+export const ORANGE = new Color(0xf75c1e);
