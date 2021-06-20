@@ -8,8 +8,12 @@ import { Object3D, Vector3 } from "three";
  * @param angle the angle to rotate in radials
  */
 export function rotateAroundPoint(object: Object3D, rotationPoint: Vector3, axis: Vector3, angle: number) {
+    object.parent?.localToWorld(object.position); // compensate for world coordinates
+
     object.position.sub(rotationPoint); // remove the offset
     object.position.applyAxisAngle(axis, angle); // rotate the position
     object.position.add(rotationPoint); // re-add the offset
-    object.rotateOnAxis(axis, angle); // rotate the object
+    
+    object.parent?.worldToLocal(object.position); // undo world coordinates compenstation
+    object.rotateOnWorldAxis(axis, angle); // rotate the object
 }
