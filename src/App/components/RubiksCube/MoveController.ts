@@ -1,23 +1,32 @@
-import { MathUtils, Vector3 } from "three";
+import { MathUtils, Object3D, Vector3 } from "three";
+import { Move, Side } from "../../Move";
 import { Updatable } from "../../Updatable";
 import { rotateAroundPoint } from "../../utils/transformUtils";
 import { Piece } from "./Piece";
-import { Axis } from "./RubiksCube";
 
 const ROTATION_ANIMATION_DURATION = 250; // rotation animation duration in ms
 const ROTATION_FACTOR = 1000 / ROTATION_ANIMATION_DURATION;
 
-interface PlaneRotation {
-    axis: Axis;
-    index: number;
+type Axis = "x" | "y" | "z";
+
+class Plane {
+    constructor(public axis: Axis, public index: number) {
+        
+    }
+}
+
+interface PlaneRotation extends Plane {
     targetAngle: number;
     currentAngle: number;
 }
 
-export interface Move {
-    axis: Axis;
-    index: number;
-    angle: number;
+const sidePlaneMap: Record<Side, Plane> = {
+    R: new Plane("x", 1),
+    L: new Plane("x", -1),
+    F: new Plane("z", 1),
+    B: new Plane("z", -1),
+    U: new Plane("y", 1),
+    D: new Plane("y", -1)
 }
 
 export class MoveController implements Updatable {
@@ -25,13 +34,19 @@ export class MoveController implements Updatable {
     private moveQueue: Move[];
     private getNextMove: () => Move | undefined;
 
-    constructor(private pieces: Piece[]) {
+    constructor(private pieces: Piece[], private cube: Object3D) {
         this.planeRotation = undefined;
         this.moveQueue = [];
         this.getNextMove = this.getNextMoveFromQueue;
     }
 
     tick(delta: number) {
+        /* // @ts-ignore
+        window.cube = {
+            position: this.cube.position,
+            rotation: this.cube.rotation,
+        } */
+
         const planeRotation = this.planeRotation;
 
         if (planeRotation) {
@@ -95,25 +110,45 @@ export class MoveController implements Updatable {
     }
 
     private getRandomMove(): Move | undefined {
-        const axes: Axis[] = ["x", "y", "z"];
+        /* const axes: Axis[] = ["x", "y", "z"];
         const angles = [1, -1].map((n) => (n * Math.PI) / 2);
 
         const axis = axes[MathUtils.randInt(0, 2)];
         const index = MathUtils.randInt(-1, 1);
         const angle = angles[MathUtils.randInt(0, 1)];
 
-        return {axis, index, angle};
+        return {axis, index, angle}; */
+
+        return undefined;
     }
 
     private setPlaneRotation(move: Move | undefined) {
-        this.planeRotation = move
-            ? {
-                  axis: move.axis,
-                  index: move.index,
-                  targetAngle: move.angle,
-                  currentAngle: 0,
-              }
-            : undefined;
+        if (!move) {
+            this.planeRotation = undefined;
+            return;
+        }
+
+        const { axis, index } = sidePlaneMap[move.side];
+
+        const axisVector = new Vector3();
+        axisVector[axis] = index;
+        axisVector
+        .applyAxisAngle(new Vector3(1, 0, 0), -this.cube.rotation.x)
+        .applyAxisAngle(new Vector3(0, 1, 0), -this.cube.rotation.y)
+        .applyAxisAngle(new Vector3(0, 0, 1), -this.cube.rotation.z);
+
+        console.log(axisVector);
+
+        
+
+        const targetAngle = Math.PI / 2 * (move.inverse ? -1 : 1);
+
+        this.planeRotation = {
+            axis,
+            index,
+            currentAngle: 0,
+            targetAngle,
+        }
     }
 
     private rotatePlane(axis: Axis, index: number, angle: number) {

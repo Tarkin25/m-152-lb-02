@@ -1,4 +1,4 @@
-import { Camera, LineSegments, Object3D, Raycaster, Vector2 } from "three";
+import { Camera, LineSegments, Object3D, Raycaster, Vector2, WebGLRenderer } from "three";
 import { Piece } from "./Piece";
 import { Axis } from "./RubiksCube";
 
@@ -14,24 +14,26 @@ export class InteractionController {
 
     constructor(
         private pieces: Piece[],
-        private container: HTMLElement,
         private camera: Camera,
         private target: Object3D,
+        private renderer: WebGLRenderer,
     ) {
         this.raycaster = new Raycaster();
         this.mouse = new Vector2();
         this.plane = undefined;
 
-        container.addEventListener("mousemove", (e) => {
+        const canvas = renderer.domElement;
+
+        canvas.addEventListener("mousemove", (e) => {
             this.onMouseMove(e);
             this.checkInteraction();
         });
 
-        container.addEventListener("contextmenu", () => {
+        canvas.addEventListener("contextmenu", () => {
             this.onClick();
         })
 
-        container.addEventListener("click", () => {
+        canvas.addEventListener("click", () => {
             this.onContextMenu();
         })
     }
@@ -82,8 +84,9 @@ export class InteractionController {
     }
 
     private onMouseMove(e: MouseEvent) {
-        this.mouse.x = (e.clientX / this.container.clientWidth) * 2 - 1;
-        this.mouse.y = -(e.clientY / this.container.clientHeight) * 2 + 1;
+        const canvasBounds = (this.renderer.getContext().canvas as HTMLCanvasElement).getBoundingClientRect();
+        this.mouse.x = ((e.clientX - canvasBounds.left) / (canvasBounds.right - canvasBounds.left)) * 2 - 1;
+        this.mouse.y = -((e.clientY - canvasBounds.top) / (canvasBounds.bottom - canvasBounds.top)) * 2 + 1;
     }
 
     private hoverPlane(axis: Axis, index: number) {

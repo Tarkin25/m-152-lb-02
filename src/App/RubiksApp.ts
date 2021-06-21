@@ -1,9 +1,11 @@
 import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { OrbitControls } from "three-stdlib";
 import { createCamera } from "./components/camera";
-import { Controls } from "./components/Controls";
 import { createLights } from "./components/lights";
+import { RotationControls } from "./components/RotationControls";
 import { RubiksCube } from "./components/RubiksCube/RubiksCube";
 import { createScene } from "./components/scene";
+import { Side } from "./Move";
 import { Loop } from "./systems/Loop";
 import { createRenderer } from "./systems/renderer";
 import { Resizer } from "./systems/Resizer";
@@ -26,18 +28,15 @@ export default class RubiksApp {
         const lights = createLights();
         this.scene.add(...lights);
 
-        const controls = new Controls(this.camera, this.renderer.domElement);
-        this.loop.add(controls);
-
-        this.cube = new RubiksCube(container, this.camera);
+        this.cube = new RubiksCube(this.scene);
         this.loop.add(this.cube);
         this.scene.add(this.cube);
+        this.camera.lookAt(this.cube.position);
+
+        new RotationControls(this.cube, this.renderer.domElement);
+        //new OrbitControls(this.camera, this.renderer.domElement);
 
         new Resizer(container, this.camera, this.renderer);
-    }
-
-    render() {
-        this.renderer.render(this.scene, this.camera);
     }
 
     start() {
@@ -46,5 +45,17 @@ export default class RubiksApp {
 
     stop() {
         this.loop.stop();
+    }
+
+    shuffleStart() {
+        this.cube.shuffleStart();
+    }
+
+    shuffleStop() {
+        this.cube.shuffleStop();
+    }
+
+    pushMove(side: Side, inverse: boolean = false) {
+        this.cube.pushMove({side, inverse});
     }
 }
