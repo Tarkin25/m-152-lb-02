@@ -1,5 +1,5 @@
 import { BoxBufferGeometry, Color, DoubleSide, EdgesGeometry, Group, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial } from "three";
-import { BLACK } from "../utils/colors";
+import { BLACK } from "../../utils/colors";
 
 interface PieceColorsInternal {
     0: Color | undefined;

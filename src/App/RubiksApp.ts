@@ -2,7 +2,7 @@ import { PerspectiveCamera, Scene, WebGLRenderer } from "three";
 import { createCamera } from "./components/camera";
 import { Controls } from "./components/Controls";
 import { createLights } from "./components/lights";
-import { RubiksCube } from "./components/RubiksCube";
+import { RubiksCube } from "./components/RubiksCube/RubiksCube";
 import { createScene } from "./components/scene";
 import { Loop } from "./systems/Loop";
 import { createRenderer } from "./systems/renderer";

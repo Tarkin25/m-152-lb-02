@@ -1,4 +1,4 @@
-import { PieceColors } from "../components/Piece";
+import { PieceColors } from "../components/RubiksCube/Piece";
 import { BLUE, GREEN, ORANGE, RED, WHITE, YELLOW } from "./colors";
 
 interface ColorMap {
