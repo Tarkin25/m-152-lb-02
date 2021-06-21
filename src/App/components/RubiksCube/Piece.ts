@@ -1,5 +1,5 @@
 import { BoxBufferGeometry, Color, DoubleSide, EdgesGeometry, Group, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial } from "three";
-import { BLACK } from "../../utils/colors";
+import { BLACK, WHITE } from "../../utils/colors";
 
 interface PieceColorsInternal {
     0: Color | undefined;
@@ -26,6 +26,7 @@ Object.values(colors).map(color => new MeshStandardMaterial({color, side: Double
 export class Piece extends Group {
 
     private cube: Mesh<BoxBufferGeometry, MeshStandardMaterial[]>;
+    private lines: LineSegments<EdgesGeometry, LineBasicMaterial>;
 
     constructor(colors: PieceColors) {
         super();
@@ -36,7 +37,21 @@ export class Piece extends Group {
         this.add(this.cube);
 
         const edges = new EdgesGeometry(geometry);
-        const lines = new LineSegments(edges, new LineBasicMaterial({color: BLACK, clipIntersection: true, linewidth: 5}));
-        this.add(lines);
+        this.lines = new LineSegments(edges, new LineBasicMaterial({color: BLACK, clipIntersection: true, linewidth: 5}));
+        this.add(this.lines);
+    }
+
+    setHovered(hovered: boolean) {
+        if (hovered) {
+            this.cube.material.forEach(material => {
+                material.emissive.set(0xff00ff).multiplyScalar(0.5);
+                material.needsUpdate = true;
+            })
+        } else {
+            this.cube.material.forEach(material => {
+                material.emissive.set(0);
+                material.needsUpdate = true;
+            })
+        }
     }
 }

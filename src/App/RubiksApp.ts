@@ -15,7 +15,7 @@ export default class RubiksApp {
     private loop: Loop;
     private cube: RubiksCube;
 
-    constructor(container: Element) {
+    constructor(container: HTMLElement) {
         this.camera = createCamera();
         this.scene = createScene();
         this.renderer = createRenderer();
@@ -26,15 +26,14 @@ export default class RubiksApp {
         const lights = createLights();
         this.scene.add(...lights);
 
-        this.cube = new RubiksCube();
+        const controls = new Controls(this.camera, this.renderer.domElement);
+        this.loop.add(controls);
+
+        this.cube = new RubiksCube(container, this.camera);
         this.loop.add(this.cube);
         this.scene.add(this.cube);
 
-        const resizer = new Resizer(container, this.camera, this.renderer);
-
-        const controls = new Controls(this.camera, this.renderer.domElement);
-        controls.target.copy(this.cube.position);
-        this.loop.add(controls);
+        new Resizer(container, this.camera, this.renderer);
     }
 
     render() {

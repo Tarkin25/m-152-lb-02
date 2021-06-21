@@ -2,11 +2,10 @@ import { MathUtils, Vector3 } from "three";
 import { Updatable } from "../../Updatable";
 import { rotateAroundPoint } from "../../utils/transformUtils";
 import { Piece } from "./Piece";
+import { Axis } from "./RubiksCube";
 
 const ROTATION_ANIMATION_DURATION = 250; // rotation animation duration in ms
 const ROTATION_FACTOR = 1000 / ROTATION_ANIMATION_DURATION;
-
-export type Axis = "x" | "y" | "z";
 
 interface PlaneRotation {
     axis: Axis;
