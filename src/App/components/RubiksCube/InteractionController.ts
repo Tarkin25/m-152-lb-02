@@ -1,8 +1,8 @@
-import { Camera, LineSegments, Object3D, Raycaster, Vector2 } from "three";
+import { Camera, LineSegments, Object3D, Plane, PlaneHelper, Raycaster, Vector2, Vector3 } from "three";
 import { Piece } from "./Piece";
 import { Axis } from "./RubiksCube";
 
-interface Plane {
+interface WhackPlane {
     axis: Axis;
     index: number;
 }
@@ -10,7 +10,8 @@ interface Plane {
 export class InteractionController {
     private raycaster: Raycaster;
     private mouse: Vector2;
-    private plane: Plane | undefined;
+    private plane: WhackPlane | undefined;
+    private planeHelper: PlaneHelper;
 
     constructor(
         private pieces: Piece[],
@@ -21,6 +22,9 @@ export class InteractionController {
         this.raycaster = new Raycaster();
         this.mouse = new Vector2();
         this.plane = undefined;
+        this.planeHelper = new PlaneHelper(new Plane(), 4, 0xff0000);
+        this.planeHelper.visible = false;
+        this.target.add(this.planeHelper);
 
         container.addEventListener("mousemove", (e) => {
             this.onMouseMove(e);
@@ -36,9 +40,9 @@ export class InteractionController {
         })
     }
 
-    onTurnLeft(_plane: Plane) {}
+    onTurnLeft(_plane: WhackPlane) {}
 
-    onTurnRight(_plane: Plane) {}
+    onTurnRight(_plane: WhackPlane) {}
 
     private onClick() {
         if (this.plane) {
@@ -59,16 +63,17 @@ export class InteractionController {
 
         const intersects = this.raycaster.intersectObject(this.target, true);
         const intersect = intersects.filter(
-            (intersect) => intersect.object.type !== "LineSegments"
+            (intersect) => intersect.object.type === "Mesh"
         )[0];
 
         if (intersect) {
             if (intersect.face) {
                 const object = intersect.object as LineSegments;
                 const piece = object.parent! as Piece;
-
+                //piece.setHovered(true);
+                
                 const normal = intersect.face.normal.clone().applyQuaternion(piece.quaternion).round();
-
+                
                 const axis = Object.entries(normal).filter(([_key, value]) => Math.abs(value) !== 0)[0][0] as Axis;
                 const index = piece.position[axis];
 
@@ -87,6 +92,18 @@ export class InteractionController {
     }
 
     private hoverPlane(axis: Axis, index: number) {
+        const normal = new Vector3();
+        normal[axis] = index;
+        const swap = normal.x;
+        normal.x = normal.z;
+        normal.z = swap;
+
+        this.planeHelper.plane.normal = normal;
+        this.planeHelper.plane.constant = -1;
+        this.planeHelper.visible = true;
+
+        console.log(this.planeHelper.plane);
+
         this.pieces.forEach((piece) => {
             if (Math.abs(piece.position[axis] - index) <= 0.01) {
                 piece.setHovered(true);
