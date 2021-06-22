@@ -1,34 +1,31 @@
-import { MathUtils, Vector3 } from "three";
+import { MathUtils, Object3D, Plane, PlaneHelper } from "three";
 import { Updatable } from "../../Updatable";
-import { rotateAroundPoint } from "../../utils/transformUtils";
+import { Move } from "./Move";
 import { Piece } from "./Piece";
-import { Axis } from "./RubiksCube";
+import { randomMove } from "./planes";
 
 const ROTATION_ANIMATION_DURATION = 250; // rotation animation duration in ms
 const ROTATION_FACTOR = 1000 / ROTATION_ANIMATION_DURATION;
 
 interface PlaneRotation {
-    axis: Axis;
-    index: number;
+    plane: Plane;
     targetAngle: number;
     currentAngle: number;
-}
-
-export interface Move {
-    axis: Axis;
-    index: number;
-    angle: number;
 }
 
 export class MoveController implements Updatable {
     private planeRotation: PlaneRotation | undefined;
     private moveQueue: Move[];
     private getNextMove: () => Move | undefined;
+    private planeHelper: PlaneHelper;
 
-    constructor(private pieces: Piece[]) {
+    constructor(private pieces: Piece[], cube: Object3D) {
         this.planeRotation = undefined;
         this.moveQueue = [];
         this.getNextMove = this.getNextMoveFromQueue;
+        this.planeHelper = new PlaneHelper(new Plane(), 4, 0xff0000);
+        this.planeHelper.visible = false;
+        cube.add(this.planeHelper);
     }
 
     tick(delta: number) {
@@ -42,8 +39,7 @@ export class MoveController implements Updatable {
             // so complete the rotation manually at the end of the animation
             if (Math.abs(difference) <= 0.1) {
                 this.rotatePlane(
-                    planeRotation.axis,
-                    planeRotation.index,
+                    planeRotation.plane,
                     difference
                 );
                 // set the current planeRotation to undefined
@@ -68,7 +64,7 @@ export class MoveController implements Updatable {
 
             planeRotation.currentAngle += angle;
 
-            this.rotatePlane(planeRotation.axis, planeRotation.index, angle);
+            this.rotatePlane(planeRotation.plane, angle);
         } else {
             this.setPlaneRotation(this.getNextMove());
         }
@@ -83,52 +79,45 @@ export class MoveController implements Updatable {
     }
 
     shuffleStart() {
-        this.getNextMove = this.getRandomMove;
+        this.getNextMove = randomMove;
     }
 
     shuffleStop() {
         this.getNextMove = this.getNextMoveFromQueue;
     }
 
-    setPieces(pieces: Piece[]) {
-        this.pieces = pieces;
-    }
-
     private getNextMoveFromQueue(): Move | undefined {
         return this.moveQueue.shift();
     }
 
-    private getRandomMove(): Move | undefined {
-        const axes: Axis[] = ["x", "y", "z"];
-        const angles = [1, -1].map((n) => (n * Math.PI) / 2);
-
-        const axis = axes[MathUtils.randInt(0, 2)];
-        const index = MathUtils.randInt(-1, 1);
-        const angle = angles[MathUtils.randInt(0, 1)];
-
-        return {axis, index, angle};
-    }
-
     private setPlaneRotation(move: Move | undefined) {
-        this.planeRotation = move
-            ? {
-                  axis: move.axis,
-                  index: move.index,
-                  targetAngle: move.angle,
-                  currentAngle: 0,
-              }
-            : undefined;
+        if (!move) {
+            this.planeRotation = undefined;
+            this.planeHelper.visible = false;
+            return;
+        }
+
+        this.planeRotation = {
+            plane: move.plane,
+            currentAngle: 0,
+            targetAngle: move.angle,
+        };
+
+        this.planeHelper.plane.copy(move.plane);
+        this.planeHelper.visible = true;
     }
 
-    private rotatePlane(axis: Axis, index: number, angle: number) {
-        const planeCenter = new Vector3(0, 0, 0);
-        planeCenter[axis] = index;
-        const rotationAxis = new Vector3(0, 0, 0);
-        rotationAxis[axis] = 1;
+    private rotatePlane(plane: Plane, angle: number) {
+        const rotationAxis = plane.normal.clone();
+
+        const axis = Object.entries(plane.normal).filter(([_, value]) => value !== 0)[0][0] as ('x' | 'y' | 'z');
 
         this.pieces.forEach((piece) => {
-            if (Math.abs(piece.position[axis] - index) <= 0.01) {
-                rotateAroundPoint(piece, planeCenter, rotationAxis, angle);
+            if (Math.abs(piece.position[axis] + plane.constant) <= 0.1) {
+                piece.parent!.localToWorld(piece.position);
+                piece.position.applyAxisAngle(rotationAxis, angle);
+                piece.parent!.worldToLocal(piece.position);
+                piece.rotateOnWorldAxis(rotationAxis, angle);
             }
         });
     }

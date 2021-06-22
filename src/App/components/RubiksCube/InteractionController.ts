@@ -45,10 +45,6 @@ export class InteractionController {
 
     onTurnRight(_plane: WhackPlane) {}
 
-    setPieces(pieces: Piece[]) {
-        this.pieces = pieces;
-    }
-
     private onClick() {
         if (this.plane) {
             this.onTurnLeft(this.plane);

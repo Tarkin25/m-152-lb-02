@@ -1,6 +1,6 @@
 import { merge } from "lodash";
 import { colorMap } from "../../utils/colorMap";
-import { PieceColors, Piece } from "./Piece";
+import { Piece, PieceColors } from "./Piece";
 
 const CUBE_AMOUNT = 3;
 const MIN_INDEX = 0;

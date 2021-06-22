@@ -1,9 +1,11 @@
 import { Camera, Group } from "three";
 import { Updatable } from "../../Updatable";
-import { generatePieces } from "./generate";
+import { generatePieces } from "./pieces";
 import { InteractionController } from "./InteractionController";
-import { Move, MoveController } from "./MoveController";
+import { Move } from "./Move";
+import { MoveController } from "./MoveController";
 import { Piece } from "./Piece";
+import { planes } from "./planes";
 
 export type Axis = "x" | "y" | "z";
 
@@ -18,14 +20,14 @@ export class RubiksCube extends Group implements Updatable {
         this.pieces = generatePieces();
         this.add(...this.pieces);
 
-        this.moveController = new MoveController(this.pieces);
+        this.moveController = new MoveController(this.pieces, this);
 
         this.interactionController = new InteractionController(this.pieces, container, camera, this);
         this.interactionController.onTurnLeft = plane => {
-            this.moveController.pushMove({...plane, angle: -Math.PI / 2});
+            //this.moveController.pushMove({...plane, angle: -Math.PI / 2});
         }
         this.interactionController.onTurnRight = plane => {
-            this.moveController.pushMove({...plane, angle: Math.PI / 2});
+            //this.moveController.pushMove({...plane, angle: Math.PI / 2});
         }
     }
 
@@ -34,12 +36,9 @@ export class RubiksCube extends Group implements Updatable {
     }
 
     checkers() {
-        this.pushMove({ axis: "z", index: 1, angle: Math.PI });
-        this.pushMove({ axis: "z", index: -1, angle: Math.PI });
-        this.pushMove({ axis: "y", index: 1, angle: Math.PI });
-        this.pushMove({ axis: "y", index: -1, angle: Math.PI });
-        this.pushMove({ axis: "x", index: 1, angle: Math.PI });
-        this.pushMove({ axis: "x", index: -1, angle: Math.PI });
+        planes.forEach(plane => {
+            this.pushMove({plane, angle: Math.PI});
+        })
     }
 
     shuffleStart() {
@@ -52,9 +51,8 @@ export class RubiksCube extends Group implements Updatable {
 
     reset() {
         this.remove(...this.pieces);
-        this.pieces = generatePieces();
-        this.moveController.setPieces(this.pieces);
-        this.interactionController.setPieces(this.pieces);
+        this.pieces.length = 0;
+        this.pieces.push(...generatePieces());
         this.add(...this.pieces);
     }
 
