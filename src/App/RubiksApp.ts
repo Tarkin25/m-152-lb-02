@@ -47,16 +47,4 @@ export default class RubiksApp {
     stop() {
         this.loop.stop();
     }
-
-    shuffleStart() {
-        this.cube.shuffleStart();
-    }
-
-    shuffleStop() {
-        this.cube.shuffleStop();
-    }
-
-    reset() {
-        this.cube.reset();
-    }
 }

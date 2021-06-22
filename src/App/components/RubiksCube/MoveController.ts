@@ -1,4 +1,5 @@
 import { MathUtils, Object3D, Plane, PlaneHelper } from "three";
+import { EventDispatcher, PushMoveEvent, PUSH_MOVE, SHUFFLE_START, SHUFFLE_STOP } from "../../systems/events";
 import { Updatable } from "../../Updatable";
 import { Move } from "./Move";
 import { Piece } from "./Piece";
@@ -26,6 +27,13 @@ export class MoveController implements Updatable {
         this.planeHelper = new PlaneHelper(new Plane(), 4, 0xff0000);
         this.planeHelper.visible = false;
         cube.add(this.planeHelper);
+
+        EventDispatcher.addEventListener(SHUFFLE_START, () => this.shuffleStart());
+        EventDispatcher.addEventListener(SHUFFLE_STOP, () => this.shuffleStop());
+        EventDispatcher.addEventListener(PUSH_MOVE, (e => {
+            const event = e as PushMoveEvent;
+            this.pushMove(event.move);
+        }))
     }
 
     tick(delta: number) {

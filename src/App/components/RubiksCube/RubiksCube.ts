@@ -1,12 +1,11 @@
 import { Camera, Group } from "three";
+import { CHECKERS, EventDispatcher, pushMove, RESET } from "../../systems/events";
 import { Updatable } from "../../Updatable";
-import { generatePieces } from "./pieces";
-import { InteractionController } from "./InteractionController";
-import { Move } from "./Move";
+import { InteractionController2 } from "./InteractionController2";
 import { MoveController } from "./MoveController";
 import { Piece } from "./Piece";
+import { generatePieces } from "./pieces";
 import { planes } from "./planes";
-import { InteractionController2 } from "./InteractionController2";
 
 export type Axis = "x" | "y" | "z";
 
@@ -24,12 +23,9 @@ export class RubiksCube extends Group implements Updatable {
         this.moveController = new MoveController(this.pieces, this);
 
         this.interactionController = new InteractionController2(this.pieces, camera, this, container);
-        /* this.interactionController.onTurnLeft = plane => {
-            //this.moveController.pushMove({...plane, angle: -Math.PI / 2});
-        }
-        this.interactionController.onTurnRight = plane => {
-            //this.moveController.pushMove({...plane, angle: Math.PI / 2});
-        } */
+        
+        EventDispatcher.addEventListener(RESET, () => this.reset());
+        EventDispatcher.addEventListener(CHECKERS, () => this.checkers());
     }
 
     tick(delta: number) {
@@ -39,16 +35,8 @@ export class RubiksCube extends Group implements Updatable {
 
     checkers() {
         planes.forEach(plane => {
-            this.pushMove({plane, angle: Math.PI});
+            EventDispatcher.dispatchEvent(pushMove({plane, angle: Math.PI}))
         })
-    }
-
-    shuffleStart() {
-        this.moveController.shuffleStart();
-    }
-
-    shuffleStop() {
-        this.moveController.shuffleStop();
     }
 
     reset() {
@@ -56,9 +44,5 @@ export class RubiksCube extends Group implements Updatable {
         this.pieces.length = 0;
         this.pieces.push(...generatePieces());
         this.add(...this.pieces);
-    }
-
-    private pushMove(move: Move) {
-        this.moveController.pushMove(move);
     }
 }
