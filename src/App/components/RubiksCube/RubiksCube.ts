@@ -6,13 +6,14 @@ import { Move } from "./Move";
 import { MoveController } from "./MoveController";
 import { Piece } from "./Piece";
 import { planes } from "./planes";
+import { InteractionController2 } from "./InteractionController2";
 
 export type Axis = "x" | "y" | "z";
 
 export class RubiksCube extends Group implements Updatable {
     private pieces: Piece[];
     private moveController: MoveController;
-    private interactionController: InteractionController;
+    private interactionController: InteractionController2;
 
     constructor(container: HTMLElement, camera: Camera) {
         super();
@@ -22,16 +23,17 @@ export class RubiksCube extends Group implements Updatable {
 
         this.moveController = new MoveController(this.pieces, this);
 
-        this.interactionController = new InteractionController(this.pieces, container, camera, this);
-        this.interactionController.onTurnLeft = plane => {
+        this.interactionController = new InteractionController2(this.pieces, camera, this, container);
+        /* this.interactionController.onTurnLeft = plane => {
             //this.moveController.pushMove({...plane, angle: -Math.PI / 2});
         }
         this.interactionController.onTurnRight = plane => {
             //this.moveController.pushMove({...plane, angle: Math.PI / 2});
-        }
+        } */
     }
 
     tick(delta: number) {
+        this.interactionController.tick(delta);
         this.moveController.tick(delta);
     }
 

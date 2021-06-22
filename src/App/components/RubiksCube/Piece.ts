@@ -30,6 +30,8 @@ export class Piece extends Group {
 
     constructor(colors: PieceColors) {
         super();
+        // @ts-ignore
+        this.type = "Piece";
 
         const materials = createMaterials(createPieceColors(colors));
         const geometry = new BoxBufferGeometry(1, 1, 1);
