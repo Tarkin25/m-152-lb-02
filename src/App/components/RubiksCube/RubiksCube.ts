@@ -10,6 +10,7 @@ export type Axis = "x" | "y" | "z";
 export class RubiksCube extends Group implements Updatable {
     private pieces: Piece[];
     private moveController: MoveController;
+    private interactionController: InteractionController;
 
     constructor(container: HTMLElement, camera: Camera) {
         super();
@@ -19,21 +20,11 @@ export class RubiksCube extends Group implements Updatable {
 
         this.moveController = new MoveController(this.pieces);
 
-        // @ts-ignore
-        window.shuffleStart = () => {
-            this.moveController.shuffleStart();
-        }
-
-        // @ts-ignore
-        window.shuffleStop = () => {
-            this.moveController.shuffleStop();
-        }
-
-        const interactionController = new InteractionController(this.pieces, container, camera, this);
-        interactionController.onTurnLeft = plane => {
+        this.interactionController = new InteractionController(this.pieces, container, camera, this);
+        this.interactionController.onTurnLeft = plane => {
             this.moveController.pushMove({...plane, angle: -Math.PI / 2});
         }
-        interactionController.onTurnRight = plane => {
+        this.interactionController.onTurnRight = plane => {
             this.moveController.pushMove({...plane, angle: Math.PI / 2});
         }
     }
@@ -49,6 +40,22 @@ export class RubiksCube extends Group implements Updatable {
         this.pushMove({ axis: "y", index: -1, angle: Math.PI });
         this.pushMove({ axis: "x", index: 1, angle: Math.PI });
         this.pushMove({ axis: "x", index: -1, angle: Math.PI });
+    }
+
+    shuffleStart() {
+        this.moveController.shuffleStart();
+    }
+
+    shuffleStop() {
+        this.moveController.shuffleStop();
+    }
+
+    reset() {
+        this.remove(...this.pieces);
+        this.pieces = generatePieces();
+        this.moveController.setPieces(this.pieces);
+        this.interactionController.setPieces(this.pieces);
+        this.add(...this.pieces);
     }
 
     private pushMove(move: Move) {

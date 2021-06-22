@@ -45,6 +45,10 @@ export class InteractionController {
 
     onTurnRight(_plane: WhackPlane) {}
 
+    setPieces(pieces: Piece[]) {
+        this.pieces = pieces;
+    }
+
     private onClick() {
         if (this.plane) {
             this.onTurnLeft(this.plane);
@@ -92,8 +96,10 @@ export class InteractionController {
     }
 
     private onMouseMove(e: MouseEvent) {
-        this.mouse.x = (e.clientX / this.container.clientWidth) * 2 - 1;
-        this.mouse.y = -(e.clientY / this.container.clientHeight) * 2 + 1;
+        const bounds = this.container.getBoundingClientRect();
+
+        this.mouse.x = ((e.clientX - bounds.left) / (bounds.right - bounds.left)) * 2 - 1;
+        this.mouse.y = -((e.clientY - bounds.top) / (bounds.bottom - bounds.top)) * 2 + 1;
     }
 
     private hoverPlane(axis: Axis, index: number) {

@@ -90,6 +90,10 @@ export class MoveController implements Updatable {
         this.getNextMove = this.getNextMoveFromQueue;
     }
 
+    setPieces(pieces: Piece[]) {
+        this.pieces = pieces;
+    }
+
     private getNextMoveFromQueue(): Move | undefined {
         return this.moveQueue.shift();
     }
