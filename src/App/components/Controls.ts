@@ -1,6 +1,6 @@
 import { Camera } from "three";
 import { OrbitControls } from "three-stdlib";
-import { EventDispatcher, HOVER } from "../systems/events";
+import { ENABLE_CONTROLS, EventDispatcher } from "../systems/events";
 import { useLoop } from "../systems/Loop";
 import { Updatable } from "../Updatable";
 
@@ -10,10 +10,10 @@ export class Controls extends OrbitControls implements Updatable {
         this.enableDamping = true;
         this.enablePan = false;
 
-        EventDispatcher.addEventListener(HOVER, e => {
-            const hover = e.hover as boolean;
+        EventDispatcher.addEventListener(ENABLE_CONTROLS, e => {
+            const enabled = e.enabled as boolean;
 
-            this.enabled = !hover;
+            this.enabled = enabled;
         })
 
         useLoop(this);
