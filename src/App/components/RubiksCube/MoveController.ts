@@ -1,5 +1,6 @@
 import { MathUtils, Object3D, Plane, PlaneHelper } from "three";
 import { EventDispatcher, PushMoveEvent, PUSH_MOVE, SHUFFLE_START, SHUFFLE_STOP } from "../../systems/events";
+import { useLoop } from "../../systems/Loop";
 import { Updatable } from "../../Updatable";
 import { Move } from "./Move";
 import { Piece } from "./Piece";
@@ -34,6 +35,8 @@ export class MoveController implements Updatable {
             const event = e as PushMoveEvent;
             this.pushMove(event.move);
         }))
+
+        useLoop(this);
     }
 
     tick(delta: number) {

@@ -1,5 +1,6 @@
 import { Camera, Object3D, Raycaster, Vector2 } from "three";
-import { EventDispatcher, hover, HOVER } from "../../systems/events";
+import { EventDispatcher, hover } from "../../systems/events";
+import { useLoop } from "../../systems/Loop";
 import { Updatable } from "../../Updatable";
 import { Piece } from "./Piece";
 
@@ -19,6 +20,8 @@ export class InteractionController2 implements Updatable {
     this.bounds = container.getBoundingClientRect();
 
     this.setupListeners();
+
+    useLoop(this);
   }
 
   tick(delta: number) {

@@ -4,7 +4,6 @@ import { Controls } from "./components/Controls";
 import { createLights } from "./components/lights";
 import { RubiksCube } from "./components/RubiksCube/RubiksCube";
 import { createScene } from "./components/scene";
-import { EventDispatcher, HOVER } from "./systems/events";
 import { Loop } from "./systems/Loop";
 import { createRenderer } from "./systems/renderer";
 import { Resizer } from "./systems/Resizer";
@@ -13,43 +12,33 @@ export default class RubiksApp {
     private camera: PerspectiveCamera;
     private scene: Scene;
     private renderer: WebGLRenderer;
-    private loop: Loop;
     private cube: RubiksCube;
 
     constructor(container: HTMLElement) {
         this.camera = createCamera();
         this.scene = createScene();
         this.renderer = createRenderer();
-        this.loop = new Loop(this.camera, this.scene, this.renderer);
 
         container.appendChild(this.renderer.domElement);
 
         const lights = createLights();
         this.scene.add(...lights);
 
-        const controls = new Controls(this.camera, this.renderer.domElement);
-        EventDispatcher.addEventListener(HOVER, e => {
-            const hover = e.hover as boolean;
-            controls.enabled = !hover;
-        })
-        this.loop.add(controls);
+        new Controls(this.camera, this.renderer.domElement);
 
         this.cube = new RubiksCube(container, this.camera);
-        this.loop.add(this.cube);
         this.scene.add(this.cube);
 
         new Resizer(container, this.camera, this.renderer);
-    }
 
-    render() {
-        this.renderer.render(this.scene, this.camera);
+        Loop.init(this.camera, this.scene, this.renderer);
     }
 
     start() {
-        this.loop.start();
+        Loop.start();
     }
 
     stop() {
-        this.loop.stop();
+        Loop.stop();
     }
 }

@@ -1,38 +1,46 @@
-import { Clock, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { Camera, Clock, Scene, WebGLRenderer } from "three";
 import { Updatable } from "../Updatable";
 
 const clock = new Clock();
 
-export class Loop {
-    private updatables: Updatable[] = [];
+let _camera: Camera;
+let _scene: Scene;
+let _renderer: WebGLRenderer;
 
-    constructor(
-        private camera: PerspectiveCamera,
-        private scene: Scene,
-        private renderer: WebGLRenderer
-    ) {}
+const updatables: Updatable[] = [];
 
-    add(...updatables: Updatable[]) {
-        this.updatables.push(...updatables);
+function init(camera: Camera, scene: Scene, renderer: WebGLRenderer) {
+    _camera = camera;
+    _scene = scene;
+    _renderer = renderer;
+}
+
+function start() {
+    _renderer.setAnimationLoop(() => {
+        tick();
+
+        _renderer.render(_scene, _camera);
+    })
+}
+
+function stop() {
+    _renderer.setAnimationLoop(null);
+}
+
+function tick() {
+    const delta = clock.getDelta();
+
+    for (const updatable of updatables) {
+        updatable.tick(delta);
     }
+}
 
-    start() {
-        this.renderer.setAnimationLoop(() => {
-            this.tick();
+export const Loop = {
+    init,
+    start,
+    stop
+}
 
-            this.renderer.render(this.scene, this.camera);
-        })
-    }
-
-    stop() {
-        this.renderer.setAnimationLoop(null);
-    }
-
-    private tick() {
-        const delta = clock.getDelta();
-
-        for (const updatable of this.updatables) {
-            updatable.tick(delta);
-        }
-    }
+export function useLoop(updatable: Updatable) {
+    updatables.push(updatable);
 }
