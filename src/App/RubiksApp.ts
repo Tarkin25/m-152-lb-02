@@ -4,6 +4,7 @@ import { Controls } from "./components/Controls";
 import { createLights } from "./components/lights";
 import { RubiksCube } from "./components/RubiksCube/RubiksCube";
 import { createScene } from "./components/scene";
+import { EventDispatcher, HOVER } from "./systems/events";
 import { Loop } from "./systems/Loop";
 import { createRenderer } from "./systems/renderer";
 import { Resizer } from "./systems/Resizer";
@@ -27,6 +28,10 @@ export default class RubiksApp {
         this.scene.add(...lights);
 
         const controls = new Controls(this.camera, this.renderer.domElement);
+        EventDispatcher.addEventListener(HOVER, e => {
+            const hover = e.hover as boolean;
+            controls.enabled = !hover;
+        })
         this.loop.add(controls);
 
         this.cube = new RubiksCube(container, this.camera);

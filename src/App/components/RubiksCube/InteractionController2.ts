@@ -1,4 +1,5 @@
 import { Camera, Object3D, Raycaster, Vector2 } from "three";
+import { EventDispatcher, hover, HOVER } from "../../systems/events";
 import { Updatable } from "../../Updatable";
 import { Piece } from "./Piece";
 
@@ -9,13 +10,12 @@ export class InteractionController2 implements Updatable {
   private hoveredPiece: Piece | undefined = undefined;
 
   constructor(
-    private pieces: Piece[],
     private camera: Camera,
     private target: Object3D,
     private container: HTMLElement
   ) {
     this.raycaster = new Raycaster();
-    this.mousePosition = new Vector2();
+    this.mousePosition = new Vector2(1, 1);
     this.bounds = container.getBoundingClientRect();
 
     this.setupListeners();
@@ -64,6 +64,7 @@ export class InteractionController2 implements Updatable {
     if (piece && !this.hoveredPiece) {
       piece.setHovered(true);
       this.hoveredPiece = piece;
+      EventDispatcher.dispatchEvent(hover(true));
     } else if (piece && this.hoveredPiece) {
       if (this.hoveredPiece.id !== piece.id) {
         this.hoveredPiece.setHovered(false);
@@ -73,6 +74,7 @@ export class InteractionController2 implements Updatable {
     } else if (!piece && this.hoveredPiece) {
       this.hoveredPiece.setHovered(false);
       this.hoveredPiece = piece;
+      EventDispatcher.dispatchEvent(hover(false));
     }
   }
 }

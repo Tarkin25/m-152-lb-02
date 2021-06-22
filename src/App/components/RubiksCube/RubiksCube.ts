@@ -22,7 +22,7 @@ export class RubiksCube extends Group implements Updatable {
 
         this.moveController = new MoveController(this.pieces, this);
 
-        this.interactionController = new InteractionController2(this.pieces, camera, this, container);
+        this.interactionController = new InteractionController2(camera, this, container);
         
         EventDispatcher.addEventListener(RESET, () => this.reset());
         EventDispatcher.addEventListener(CHECKERS, () => this.checkers());

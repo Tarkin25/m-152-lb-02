@@ -8,6 +8,7 @@ export const SHUFFLE_STOP = "shuffle-stop";
 export const RESET = "reset";
 export const PUSH_MOVE = "push-move";
 export const CHECKERS = "checkers";
+export const HOVER = "hover";
 
 export interface PushMoveEvent {
     type: typeof PUSH_MOVE;
@@ -33,4 +34,9 @@ export const reset = () => ({
 
 export const checkers = () => ({
     type: CHECKERS
+})
+
+export const hover = (hover: boolean) => ({
+    type: HOVER,
+    hover,
 })
