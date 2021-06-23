@@ -16,7 +16,7 @@ export class RubiksCube extends Group {
         this.pieces = generatePieces();
         this.add(...this.pieces);
 
-        new MoveController(this.pieces, this);
+        new MoveController(this.pieces);
         new HoverController(camera, this, container);
         new DragController(camera, this, container);
         

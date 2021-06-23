@@ -1,4 +1,4 @@
-import { MathUtils, Object3D, Plane, PlaneHelper } from "three";
+import { MathUtils, Plane } from "three";
 import { EventDispatcher, PushMoveEvent, PUSH_MOVE, SHUFFLE_START, SHUFFLE_STOP } from "../../systems/events";
 import { useLoop } from "../../systems/Loop";
 import { Updatable } from "../../Updatable";
@@ -19,15 +19,11 @@ export class MoveController implements Updatable {
     private planeRotation: PlaneRotation | undefined;
     private moveQueue: Move[];
     private getNextMove: () => Move | undefined;
-    private planeHelper: PlaneHelper;
 
-    constructor(private pieces: Piece[], cube: Object3D) {
+    constructor(private pieces: Piece[]) {
         this.planeRotation = undefined;
         this.moveQueue = [];
         this.getNextMove = this.getNextMoveFromQueue;
-        this.planeHelper = new PlaneHelper(new Plane(), 4, 0xff0000);
-        this.planeHelper.visible = false;
-        cube.add(this.planeHelper);
 
         EventDispatcher.addEventListener(SHUFFLE_START, () => this.shuffleStart());
         EventDispatcher.addEventListener(SHUFFLE_STOP, () => this.shuffleStop());
@@ -104,7 +100,6 @@ export class MoveController implements Updatable {
     private setPlaneRotation(move: Move | undefined) {
         if (!move) {
             this.planeRotation = undefined;
-            this.planeHelper.visible = false;
             return;
         }
 
@@ -113,9 +108,6 @@ export class MoveController implements Updatable {
             currentAngle: 0,
             targetAngle: move.angle,
         };
-
-        this.planeHelper.plane.copy(move.plane);
-        this.planeHelper.visible = true;
     }
 
     private rotatePlane(plane: Plane, angle: number) {

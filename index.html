@@ -12,7 +12,14 @@
                 <h2 class="text-4xl">LB 02</h2>
             </header>
     
-            <main id="main" class="flex-grow bg-blue-400"></main>
+            <main id="main" class="flex-grow bg-blue-400 relative">
+                <div class="absolute top-0 left-0 right-0 p-4 flex justify-center">
+                    <button id="reset" class="shadow mx-2 px-4 py-2 text-white rounded-lg bg-blue-800 focus:outline-none active:bg-blue-900">Reset</button>
+                    <button id="shuffle-start" class="shadow mx-2 px-4 py-2 text-white rounded-lg bg-blue-800 focus:outline-none active:bg-blue-900">Shuffle Start</button>
+                    <button id="shuffle-stop" class="shadow mx-2 px-4 py-2 text-white rounded-lg bg-blue-800 focus:outline-none active:bg-blue-900">Shuffle Stop</button>
+                    <button id="checkers" class="shadow mx-2 px-4 py-2 text-white rounded-lg bg-blue-800 focus:outline-none active:bg-blue-900">Checkers</button>
+                </div>
+            </main>
         </div>
 
         <script type="module" src="/src/main.ts"></script>

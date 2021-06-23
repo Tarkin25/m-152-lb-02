@@ -80,9 +80,10 @@ export class DragController {
 
     private mouseUp(e: MouseEvent) {
         if (this.faceNormal && this.draggedPiece) {
+            this.faceNormal.transformDirection(this.draggedPiece.modelViewMatrix);
             const dragVector = new Vector2();
             this.applyMouseEvent(e, dragVector);
-            if (Math.abs(dragVector.x) < Math.abs(dragVector.y)) {
+            if (Math.abs(Math.abs(dragVector.x) - Math.abs(this.dragStart.x)) < Math.abs(Math.abs(dragVector.y) - Math.abs(this.dragStart.y))) {
                 dragVector.x = 0;
             } else {
                 dragVector.y = 0;
