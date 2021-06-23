@@ -56,4 +56,11 @@ export class Piece extends Group {
             })
         }
     }
+
+    setColor(color: Color) {
+        this.cube.material.forEach(material => {
+            material.color = color;
+            material.needsUpdate = true;
+        })
+    }
 }

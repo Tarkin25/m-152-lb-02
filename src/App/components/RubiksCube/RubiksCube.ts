@@ -1,18 +1,14 @@
 import { Camera, Group } from "three";
 import { CHECKERS, EventDispatcher, pushMove, RESET } from "../../systems/events";
-import { Updatable } from "../../Updatable";
-import { InteractionController2 } from "./InteractionController2";
+import { DragController } from "./DragController";
+import { HoverController } from "./HoverController";
 import { MoveController } from "./MoveController";
 import { Piece } from "./Piece";
 import { generatePieces } from "./pieces";
 import { planes } from "./planes";
 
-export type Axis = "x" | "y" | "z";
-
-export class RubiksCube extends Group implements Updatable {
+export class RubiksCube extends Group {
     private pieces: Piece[];
-    private moveController: MoveController;
-    private interactionController: InteractionController2;
 
     constructor(container: HTMLElement, camera: Camera) {
         super();
@@ -20,17 +16,12 @@ export class RubiksCube extends Group implements Updatable {
         this.pieces = generatePieces();
         this.add(...this.pieces);
 
-        this.moveController = new MoveController(this.pieces, this);
-
-        this.interactionController = new InteractionController2(camera, this, container);
+        new MoveController(this.pieces, this);
+        new HoverController(camera, this, container);
+        new DragController(camera, this, container);
         
         EventDispatcher.addEventListener(RESET, () => this.reset());
         EventDispatcher.addEventListener(CHECKERS, () => this.checkers());
-    }
-
-    tick(delta: number) {
-        this.interactionController.tick(delta);
-        this.moveController.tick(delta);
     }
 
     checkers() {
