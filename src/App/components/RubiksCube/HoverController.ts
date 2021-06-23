@@ -7,7 +7,6 @@ export class HoverController implements Updatable {
 
     private raycaster = new Raycaster();
     private mousePosition = new Vector2(1,1);
-    private hoveredPiece: Piece | undefined = undefined;
 
     constructor(
         private camera: Camera,
@@ -50,18 +49,10 @@ export class HoverController implements Updatable {
     }
 
     private setHoveredPiece(piece: Piece | undefined) {
-        if (piece && !this.hoveredPiece) {
-            piece.setHovered(true);
-            this.hoveredPiece = piece;
-        } else if (piece && this.hoveredPiece) {
-            if (this.hoveredPiece.id !== piece.id) {
-                this.hoveredPiece.setHovered(false);
-                piece.setHovered(true);
-                this.hoveredPiece = piece;
-            }
-        } else if (!piece && this.hoveredPiece) {
-            this.hoveredPiece.setHovered(false);
-            this.hoveredPiece = piece;
+        if (piece) {
+            this.container.style.cursor = "pointer";
+        } else {
+            this.container.style.cursor = "initial";
         }
     }
 }

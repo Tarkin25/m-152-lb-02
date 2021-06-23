@@ -1,6 +1,6 @@
 import { Camera, Group } from "three";
 import { CHECKERS, EventDispatcher, pushMove, RESET } from "../../systems/events";
-import { DragController } from "./DragController";
+import { ClickController } from "./ClickController";
 import { HoverController } from "./HoverController";
 import { MoveController } from "./MoveController";
 import { Piece } from "./Piece";
@@ -18,7 +18,7 @@ export class RubiksCube extends Group {
 
         new MoveController(this.pieces);
         new HoverController(camera, this, container);
-        new DragController(camera, this, container);
+        new ClickController(camera, this, container);
         
         EventDispatcher.addEventListener(RESET, () => this.reset());
         EventDispatcher.addEventListener(CHECKERS, () => this.checkers());
