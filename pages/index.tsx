@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import Button from "../components/Button";
+import Header from "../components/Header";
 import RubiksApp from "../three/RubiksApp";
 import {
   checkers,
@@ -7,20 +8,28 @@ import {
   shuffleStart,
   shuffleStop,
 } from "../three/systems/events";
+import Head from "next/head";
+import Link from "next/link";
 
 const HomePage = () => {
   const main = useRef<HTMLDivElement>();
 
   useEffect(() => {
-      const app = new RubiksApp(main.current);
-      app.start();
+    const app = new RubiksApp(main.current);
+    app.start();
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-gray-900 p-4 text-gray-200">
-        <h2 className="text-4xl">LB 02</h2>
-      </header>
+      <Head>
+        <title>Rubik's Cube</title>
+      </Head>
+
+      <Header>
+        <Link href="/impressum">
+          <a>Impressum</a>
+        </Link>
+      </Header>
 
       <main ref={main} className="flex-grow bg-blue-400 relative">
         <div className="absolute top-0 left-0 right-0 p-4 flex justify-center">
