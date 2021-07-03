@@ -1,4 +1,4 @@
-import { MathUtils, Plane } from "three";
+import { Plane, MathUtils } from "three";
 import { EventDispatcher, PushMoveEvent, PUSH_MOVE, SHUFFLE_START, SHUFFLE_STOP } from "../../systems/events";
 import { useLoop } from "../../systems/Loop";
 import { Updatable } from "../../Updatable";

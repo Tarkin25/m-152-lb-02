@@ -1,6 +1,5 @@
-import React, { Fragment } from "react";
 import Head from "next/head";
-import Header from "../components/Header";
+import React, { Fragment } from "react";
 
 const ImpressumPage = () => {
   return (
@@ -8,8 +7,6 @@ const ImpressumPage = () => {
       <Head>
         <title>Impressum - Rubik's Cube</title>
       </Head>
-
-      <Header />
 
       <main className="p-4">
         <h2 className="text-4xl mt-2 mb-4">Impressum</h2>
